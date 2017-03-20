@@ -1,0 +1,10 @@
+MODULE    = winscard.dll
+IMPORTLIB = winscard
+EXTRALIBS= -lpcsclite
+
+C_SRCS = \
+	winscard.c \
+	winscard_impl.c
+
+RC_SRCS = \
+	rsrc.rc
