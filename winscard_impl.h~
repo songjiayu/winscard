@@ -1,5 +1,6 @@
 
 
+
 #ifndef WINSCARDIMPL
 #define WINSCARDIMPL
 
@@ -9,6 +10,7 @@
 #else
 #define SCARD_READERSTATE_T SCARD_READERSTATEA
 #endif
+
 
 LONG wine_SCardEstablishContext(DWORD dwScope,
 		/*@null@*/ LPCVOID pvReserved1, /*@null@*/ LPCVOID pvReserved2,

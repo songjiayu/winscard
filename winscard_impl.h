@@ -1,5 +1,7 @@
 
 
+
+
 #ifndef WINSCARDIMPL
 #define WINSCARDIMPL
 
