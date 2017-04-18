@@ -33,7 +33,7 @@
 #define IN_WINE_SC
 
 #include "winscard_impl.h"
-
+#include <wchar.h>
 WINE_DEFAULT_DEBUG_CHANNEL(winscard);
 
 static HANDLE g_startedEvent = NULL;
@@ -81,15 +81,22 @@ LPWSTR WINAPI MultiByteToUnicode(LPCSTR lpMultiByteStr, UINT uCodePage)
     nLength = MultiByteToWideChar(uCodePage, 0, lpMultiByteStr,
                                   -1, NULL, 0);
     if (nLength == 0)
+    {
+    	fprintf(stderr,"MultiByteToWideChar  return length :%d \n", nLength);
         return NULL;
-
+    }
     lpUnicodeStr = MyMalloc(nLength * sizeof(WCHAR));
     if (lpUnicodeStr == NULL)
-        return NULL;
+    {
+    	fprintf(stderr,"MultiByteToWideChar  malloc fail \n");
+    	return NULL;
+    }
+
 
     if (!MultiByteToWideChar(uCodePage, 0, lpMultiByteStr,
                              nLength, lpUnicodeStr, nLength))
     {
+    	fprintf(stderr,"MultiByteToWideChar  fail \n");
         MyFree(lpUnicodeStr);
         return NULL;
     }
@@ -154,8 +161,12 @@ LONG WINAPI SCardAddReaderToGroupW(SCARDCONTEXT context, LPCWSTR reader, LPCWSTR
     LPCVOID pvReserved2, LPSCARDCONTEXT phContext)
 {
 
+	FIXME("(%x,%p,%p,%p) stub\n", dwScope, pvReserved1, pvReserved2, phContext);
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return SCARD_F_INTERNAL_ERROR;
+
 	return wine_SCardEstablishContext(dwScope,  pvReserved1,
-     pvReserved2,  phContext);
+           pvReserved2,  phContext);
 }*/
 
 /*LONG WINAPI SCardIsValidContext(SCARDCONTEXT context)
@@ -209,28 +220,49 @@ void WINAPI SCardReleaseStartedEvent(void)
     FIXME("stub\n");
 }
 
+
 LONG WINAPI SCardListReadersA(SCARDCONTEXT context, const CHAR *groups, CHAR *readers, DWORD *buflen)
 {
-    fprintf(stderr,"SCardListReadersA \n");
-    LONG ret;
+	LONG ret;
+    fprintf(stderr,"SCardListReadersA context:%d buflen: %d\n",context,  *buflen);
+
     ret = wine_SCardListReaders(context, groups, readers, buflen);
-	fprintf(stderr,"readersA:%s \n", readers);
+	int i = 0,p = 0;
+	if(NULL !=&readers[i])
+	{
+		for (i = 0; i+1 < *buflen; i++)
+		{
+			++p;
+			fprintf(stderr, "ReaderA %02d: %s\n" , p, debugstr_a(&readers[i]));
+			while (readers[++i] != 0) ;
+		}
+	}
+
+    fprintf(stderr,"SCardListReadersA  ret:%d ***************end\n",ret);
 	return ret;
 }
 
-LONG WINAPI SCardListReadersW(SCARDCONTEXT context, const WCHAR *groups, WCHAR *readers, DWORD *buflen)
+LONG WINAPI SCardListReadersW(SCARDCONTEXT context, const WCHAR *groups, LPWSTR readers, DWORD *buflen)
 {
     fprintf(stderr,"SCardListReadersW \n");
     LONG ret;
-
 	CHAR *groupsA = NULL, *readersA = NULL;
-    groupsA = UnicodeToMultiByte(groups, CP_ACP);
-	readersA = UnicodeToMultiByte(readers, CP_ACP);
+	if(readers != NULL)readersA = UnicodeToMultiByte(readers, CP_ACP);
     ret = SCardListReadersA( context,groupsA, readersA, buflen);
 
-	/*change out pama to W*/
-	readers = MultiByteToUnicode(readersA ,CP_ACP);
-	fprintf(stderr,"readersW:%s \n", readers);
+	/*change out param to W*/
+    if(readersA != NULL)readers = MultiByteToUnicode( readersA ,CP_ACP);
+
+	int p = 0, i = 0;
+	if(NULL !=&readers[i])
+	{
+		for (i = 0; i+1 < *buflen; i++)
+		{
+			++p;
+			FIXME("ReaderW %02d: %s  buflen=%d\n" , p,debugstr_w(&readers[i]) , *buflen);
+			while (readers[++i] != 0) ;
+		}
+	}
 
 	return ret;
 }
@@ -251,109 +283,174 @@ LONG WINAPI SCardConnectW(SCARDCONTEXT hContext,LPCWSTR szReaderW, DWORD dwShare
     return SCardConnectA(hContext, szReaderA, dwShareMode, dwPreferredProtocols, phCard, pdwActiveProtocol);
 }
 
-LONG WINAPI SCardControl(SCARDHANDLE hCard,DWORD dwControlCode,LPCVOID pbSendBuffer,DWORD cbSendLength,
+/*LONG WINAPI SCardControl(SCARDHANDLE hCard,DWORD dwControlCode,LPCVOID pbSendBuffer,DWORD cbSendLength,
 	LPVOID pbRecvBuffer,DWORD cbRecvLength,LPDWORD lpBytesReturned)
 {
 
     return wine_SCardControl( hCard, dwControlCode, pbSendBuffer, cbSendLength,pbRecvBuffer, cbRecvLength, lpBytesReturned);
 
-}
+}*/
 
-LONG WINAPI SCardDisconnect(SCARDHANDLE context,DWORD dwDisposition)
+/*LONG WINAPI SCardDisconnect(SCARDHANDLE context,DWORD dwDisposition)
 {
     return wine_SCardDisconnect(context, dwDisposition);
-}
+}*/
 
-LONG WINAPI SCardEndTransaction(SCARDHANDLE hCard,DWORD dwDisposition)
+/*LONG WINAPI SCardEndTransaction(SCARDHANDLE hCard,DWORD dwDisposition)
 {
     return wine_SCardEndTransaction(hCard, dwDisposition);
-}
+}*/
 
 /*LONG WINAPI SCardFreeMemory(SCARDCONTEXT hContext,LPCVOID pvMem)
 {
     return wine_SCardFreeMemory(hContext,pvMem);
 }*/
 
-LONG WINAPI SCardGetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPBYTE pbAttr,LPDWORD pcbAttrLen)
+/*LONG WINAPI SCardGetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPBYTE pbAttr,LPDWORD pcbAttrLen)
 {
     return wine_SCardGetAttrib( hCard, dwAttrId, pbAttr, pcbAttrLen);
-}
+}*/
 
 LONG WINAPI SCardGetStatusChangeA(SCARDCONTEXT hContext,DWORD dwTimeout,
 	LPSCARD_READERSTATEA p_rgReaderStates,DWORD cReaders)
 {
-    fprintf(stderr,"SCardGetStatusChangeA \n");
-    SCARD_READERSTATEA *rgReaderStates = p_rgReaderStates;
-    return wine_SCardGetStatusChange( hContext, dwTimeout, rgReaderStates, cReaders);
+    fprintf(stderr,"SCardGetStatusChangeA  \n");
+    return wine_SCardGetStatusChange( hContext, dwTimeout, p_rgReaderStates, cReaders);
 }
+
 
 LONG WINAPI SCardGetStatusChangeW(SCARDCONTEXT hContext,DWORD dwTimeout,
 	LPSCARD_READERSTATEW rgReaderStates,DWORD cReaders)
 {
-    fprintf(stderr,"SCardGetStatusChangeW \n");
+    //TRACE_JASON_FUNC_CALL();
     LONG ret;
-	
-	SCARD_READERSTATEA rgReaderStatesA[1];
+    int cReadersIndex = 0;
+    fprintf(stderr,"SCardGetStatusChangeW(readers number:%d)\n",cReaders);
+    LPSCARD_READERSTATEA rgReaderStatesA;
+    rgReaderStatesA = HeapAlloc(GetProcessHeap(),0,sizeof(SCARD_READERSTATEA)*cReaders);
+    for(cReadersIndex = 0; cReadersIndex < cReaders; cReadersIndex++)
+    {
+    	fprintf(stderr, "rgReaderStates[%d].szReader: %s\n", cReadersIndex , debugstr_w(rgReaderStates[cReadersIndex].szReader));
+	    //int cReadersIndexA = cReaders - cReadersIndex - 1;
+        if(rgReaderStates[cReadersIndex].szReader != NULL)rgReaderStatesA[cReadersIndex].szReader = UnicodeToMultiByte(rgReaderStates[cReadersIndex].szReader,CP_ACP);
+        if(rgReaderStates[cReadersIndex].pvUserData != NULL)
+        {
+        	 rgReaderStatesA[cReadersIndex].pvUserData = rgReaderStates[cReadersIndex].pvUserData;
+        }else{
+        	 rgReaderStatesA[cReadersIndex].pvUserData = NULL;
+        }
+        rgReaderStatesA[cReadersIndex].dwCurrentState = rgReaderStates[cReadersIndex].dwCurrentState;
+        rgReaderStatesA[cReadersIndex].dwEventState = rgReaderStates[cReadersIndex].dwEventState;
+        rgReaderStatesA[cReadersIndex].cbAtr = rgReaderStates[cReadersIndex].cbAtr;
 
-	rgReaderStatesA[0].pvUserData = rgReaderStates[0].pvUserData;
-	rgReaderStatesA[0].dwCurrentState = rgReaderStates[0].dwCurrentState;
-	rgReaderStatesA[0].dwEventState = rgReaderStates[0].dwEventState;
-	rgReaderStatesA[0].cbAtr = rgReaderStates[0].cbAtr;
+        fprintf(stderr,"rgReaderStatesA[%d].cbAtr %d \n",cReadersIndex,  rgReaderStates[cReadersIndex].cbAtr);
+	    int rgbAtrIndex = 0;
+	    if(rgReaderStates[cReadersIndex].cbAtr > 0)
+	    {
+	        for(rgbAtrIndex = 0; rgbAtrIndex < rgReaderStates[cReadersIndex].cbAtr; rgbAtrIndex++)
+	        {
+	        	//fprintf(stderr,"%d:BYTE[%d]  %d \n",cReadersIndex, rgbAtrIndex,  rgReaderStates[cReadersIndex].rgbAtr[rgbAtrIndex]);
+	            rgReaderStatesA[cReadersIndex].rgbAtr[rgbAtrIndex] = rgReaderStates[cReadersIndex].rgbAtr[rgbAtrIndex];
+	        }
+	    }else{
+	    	  for(rgbAtrIndex = 0; rgbAtrIndex < rgReaderStates[cReadersIndex].cbAtr; rgbAtrIndex++)
+	         {
+					//fprintf(stderr,"%d:BYTE[%d]  %d \n",cReadersIndex, rgbAtrIndex,  rgReaderStates[cReadersIndex].rgbAtr[rgbAtrIndex]);
+					rgReaderStatesA[cReadersIndex].rgbAtr[rgbAtrIndex] = 0;
+	    	 }
+	    }
 
-	rgReaderStatesA[1].pvUserData = rgReaderStates[1].pvUserData;
-	rgReaderStatesA[1].dwCurrentState = rgReaderStates[1].dwCurrentState;
-	rgReaderStatesA[1].dwEventState = rgReaderStates[1].dwEventState;
-	rgReaderStatesA[1].cbAtr = rgReaderStates[1].cbAtr;
+    }
 
-	rgReaderStatesA[0].szReader = UnicodeToMultiByte(rgReaderStates [0].szReader,CP_ACP);
-	rgReaderStatesA[1].szReader = UnicodeToMultiByte(rgReaderStates [1].szReader,CP_ACP);
+    ret = SCardGetStatusChangeA(hContext,dwTimeout,rgReaderStatesA,cReaders);
+    for(cReadersIndex = 0; cReadersIndex < cReaders; cReadersIndex++)
+    {
+        //fprintf(stderr,"SCardGetStatusChangeW - index:%d-- reader:%s  -- CurrentState %d\n",cReadersIndex,rgReaderStatesA[cReadersIndex].szReader,rgReaderStatesA[cReadersIndex].dwCurrentState);
+        rgReaderStates[cReadersIndex].dwCurrentState = rgReaderStatesA[cReadersIndex].dwCurrentState;
+        rgReaderStates[cReadersIndex].dwEventState = rgReaderStatesA[cReadersIndex].dwEventState;
+        rgReaderStates[cReadersIndex].cbAtr = rgReaderStatesA[cReadersIndex].cbAtr;
 
-	strcpy(rgReaderStatesA[0].rgbAtr,rgReaderStates[0].rgbAtr);
-	strcpy(rgReaderStatesA[1].rgbAtr,rgReaderStates[1].rgbAtr);
-	
-	ret = SCardGetStatusChangeA(hContext,dwTimeout,rgReaderStatesA,cReaders);
-
-    /*change out pama to W*/   
-	rgReaderStates[1].szReader = MultiByteToUnicode(rgReaderStatesA[1].szReader, CP_ACP);
-	
-	fprintf(stderr,"SCardGetStatusChangeW end \n");
-	return ret;
+	    fprintf(stderr,"rgReaderStatesA[%d].cbAtr %d \n",cReadersIndex,  rgReaderStates[cReadersIndex].cbAtr);
+        int rgbAtrIndex = 0;
+        for(rgbAtrIndex = 0; rgbAtrIndex <  rgReaderStates[cReadersIndex].cbAtr; rgbAtrIndex++)
+        {
+        	fprintf(stderr,"%d:BYTE[%d]  %d \n",cReadersIndex, rgbAtrIndex,  rgReaderStatesA[cReadersIndex].rgbAtr[rgbAtrIndex]);
+           rgReaderStates[cReadersIndex].rgbAtr[rgbAtrIndex] = rgReaderStatesA[cReadersIndex].rgbAtr[rgbAtrIndex];
+        }
+    }
+    //HeapFree(GetProcessHeap(), 0 , rgReaderStatesA );
+    //TRACE_JASON_FUNC_RET();
+    fprintf(stderr,"SCardGetStatusChangeW - wokakakak %d\n",ret);
+    return ret;
 }
 
 LONG WINAPI SCardListReaderGroupsA(SCARDCONTEXT hContext,LPSTR mszGroups,LPDWORD pcchGroups)
 {
-    return wine_SCardListReaderGroups( hContext, mszGroups, pcchGroups);
+	LONG ret;
+	fprintf(stderr,"SCardListReaderGroupsA  \n");
+    wine_SCardListReaderGroups( hContext, mszGroups, pcchGroups);
+       int i =0;
+    	int p = 0;
+    	if(NULL != &mszGroups[i])
+    	{
+    		for (i = 0; i+1 < *pcchGroups; i++)
+    		{
+    			++p;
+    			printf( "GroupsA %02d : %s\n" , p, &mszGroups[i]);
+
+    			while (mszGroups[++i] != 0) ;
+    		}
+    	}
+    fprintf(stderr,"SCardListReaderGroupsA   end %d \n", *pcchGroups);
+    return ret;
 }
 
 LONG WINAPI SCardListReaderGroupsW(SCARDCONTEXT hContext,LPWSTR mszGroups,LPDWORD pcchGroups)
 {
+	fprintf(stderr,"SCardListReaderGroupsW  \n");
    LONG ret;
    LPSTR mszGroupsA;
-   mszGroupsA = HeapAlloc(GetProcessHeap(),0 ,sizeof(char)*(*pcchGroups));
+  // mszGroupsA = HeapAlloc(GetProcessHeap(),0 ,sizeof(char)*(*pcchGroups));
+
+   mszGroupsA = UnicodeToMultiByte(mszGroups, CP_ACP );
+
    ret = SCardListReaderGroupsA(hContext, mszGroupsA, pcchGroups);
 
    mszGroups = MultiByteToUnicode(mszGroupsA, CP_ACP);
 
+   int i =0;
+	int p = 0;
+
+	if(NULL != &mszGroups[i])
+	{
+		for (i = 0; i+1 < *pcchGroups; i++)
+		{
+			++p;
+			FIXME("GroupsW %02d : %s\n ",p , debugstr_w(&mszGroups[i]));
+			while (mszGroups[++i] != 0) ;
+		}
+	}
+
    return ret;
 }
 
-LONG WINAPI SCardReconnect(SCARDHANDLE hCard,DWORD dwShareMode,DWORD dwPreferredProtocols,DWORD dwInitialization,LPDWORD pdwActiveProtocol)
+/*LONG WINAPI SCardReconnect(SCARDHANDLE hCard,DWORD dwShareMode,DWORD dwPreferredProtocols,DWORD dwInitialization,LPDWORD pdwActiveProtocol)
 {
     return wine_SCardReconnect(hCard, dwShareMode, dwPreferredProtocols,
 		 dwInitialization, pdwActiveProtocol);
-}
+}*/
 
-LONG WINAPI SCardSetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPCBYTE pbAttr,DWORD cbAttrLen)
+/*LONG WINAPI SCardSetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPCBYTE pbAttr,DWORD cbAttrLen)
 {
     return wine_SCardSetAttrib(hCard, dwAttrId, pbAttr, cbAttrLen);
-}
+}*/
 
 
-LONG WINAPI SCardTransmit(SCARDHANDLE hCard, LPCSCARD_IO_REQUEST pioSendPci, LPCBYTE pbSendBuffer,
+/*LONG WINAPI SCardTransmit(SCARDHANDLE hCard, LPCSCARD_IO_REQUEST pioSendPci, LPCBYTE pbSendBuffer,
 	DWORD cbSendLength,LPSCARD_IO_REQUEST pioRecvPci,LPBYTE pbRecvBuffer,LPDWORD pcbRecvLength)
 {
     SCARD_IO_REQUEST *ioSendPci = pioSendPci;
 	SCARD_IO_REQUEST *ioRecvPic = pioRecvPci;
 
     return wine_SCardTransmit( hCard, ioSendPci, pbSendBuffer, cbSendLength,ioRecvPic, pbRecvBuffer, pcbRecvLength);
-}
+}*/

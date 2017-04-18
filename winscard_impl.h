@@ -1,23 +1,23 @@
 
 
-
-
 #ifndef WINSCARDIMPL
 #define WINSCARDIMPL
 
 #ifdef USR_LINUX  //winscard_impl.c
 #include <winscard.h>
 #define SCARD_READERSTATE_T SCARD_READERSTATE
+
+#define WINAPI __attribute__((__stdcall__)) 
+
 #else
 #define SCARD_READERSTATE_T SCARD_READERSTATEA
 #endif
 
-
-LONG wine_SCardEstablishContext(DWORD dwScope,
+LONG WINAPI wine_SCardEstablishContext(DWORD dwScope,
 		/*@null@*/ LPCVOID pvReserved1, /*@null@*/ LPCVOID pvReserved2,
 		/*@out@*/ LPSCARDCONTEXT phContext);
 
-LONG wine_SCardStatus(SCARDHANDLE hCard,
+LONG WINAPI wine_SCardStatus(SCARDHANDLE hCard,
 		/*@null@*/ /*@out@*/ LPSTR mszReaderName,
 		/*@null@*/ /*@out@*/ LPDWORD pcchReaderLen,
 		/*@null@*/ /*@out@*/ LPDWORD pdwState,
@@ -25,23 +25,23 @@ LONG wine_SCardStatus(SCARDHANDLE hCard,
 		/*@null@*/ /*@out@*/ LPBYTE pbAtr,
 		/*@null@*/ /*@out@*/ LPDWORD pcbAtrLen);
 
-LONG wine_SCardIsValidContext(SCARDCONTEXT hContext);
+LONG WINAPI wine_SCardIsValidContext(SCARDCONTEXT hContext);
 
-LONG wine_SCardReleaseContext(SCARDCONTEXT hContext);
+LONG WINAPI wine_SCardReleaseContext(SCARDCONTEXT hContext);
 
-LONG wine_SCardListReaders(SCARDCONTEXT hContext,
+LONG WINAPI wine_SCardListReaders(SCARDCONTEXT hContext,
 		LPCSTR mszGroups,
 		LPSTR mszReaders,
 		LPDWORD pcchReaders );
 
-LONG wine_SCardConnect(SCARDCONTEXT hContext,
+LONG WINAPI wine_SCardConnect(SCARDCONTEXT hContext,
 				LPCSTR szReader,
 				DWORD dwShareMode,
 				DWORD dwPreferredProtocols,
 				LPSCARDHANDLE phCard,
 				LPDWORD pdwActiveProtocol);
 
-LONG wine_SCardControl(SCARDHANDLE hCard,
+LONG WINAPI wine_SCardControl(SCARDHANDLE hCard,
 					DWORD dwControlCode,
 					LPCVOID pbSendBuffer,
 					DWORD cbSendLength,
@@ -50,34 +50,33 @@ LONG wine_SCardControl(SCARDHANDLE hCard,
 					LPDWORD lpBytesReturned 
 				);
 
-LONG wine_SCardDisconnect(SCARDHANDLE hCard,
+LONG WINAPI wine_SCardDisconnect(SCARDHANDLE hCard,
 						DWORD dwDisposition);
 
-LONG wine_SCardEndTransaction(SCARDHANDLE hCard,DWORD dwDisposition);	
+LONG WINAPI wine_SCardEndTransaction(SCARDHANDLE hCard,DWORD dwDisposition);	
 
 
-LONG wine_SCardFreeMemory(SCARDCONTEXT hContext,LPCVOID pvMem);
+LONG WINAPI wine_SCardFreeMemory(SCARDCONTEXT hContext,LPCVOID pvMem);
 
-LONG wine_SCardGetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPBYTE pbAttr,LPDWORD pcbAttrLen);
+LONG WINAPI wine_SCardGetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPBYTE pbAttr,LPDWORD pcbAttrLen);
 
-LONG wine_SCardGetStatusChange(SCARDCONTEXT hContext,DWORD dwTimeout,SCARD_READERSTATE_T *rgReaderStates,
+LONG WINAPI wine_SCardGetStatusChange(SCARDCONTEXT hContext,DWORD dwTimeout,SCARD_READERSTATE_T *rgReaderStates,
 		DWORD cReaders);
 
-LONG wine_SCardIsValidContext(SCARDCONTEXT hContext);
+LONG WINAPI wine_SCardListReaderGroups(SCARDCONTEXT hContext,LPSTR mszGroups,LPDWORD pcchGroups);
 
-LONG wine_SCardListReaderGroups(SCARDCONTEXT hContext,LPSTR mszGroups,LPDWORD pcchGroups);
-
-LONG wine_SCardReconnect(SCARDHANDLE hCard,DWORD dwShareMode,DWORD dwPreferredProtocols,
+LONG WINAPI wine_SCardReconnect(SCARDHANDLE hCard,DWORD dwShareMode,DWORD dwPreferredProtocols,
 		DWORD dwInitialization,LPDWORD pdwActiveProtocol);
 
-LONG wine_SCardSetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPCBYTE pbAttr,DWORD cbAttrLen);
+LONG WINAPI wine_SCardSetAttrib(SCARDHANDLE hCard,DWORD dwAttrId,LPCBYTE pbAttr,DWORD cbAttrLen);
 
-LONG wine_SCardStatus(SCARDHANDLE hCard,LPSTR szReaderName,LPDWORD  	pcchReaderLen,
-		LPDWORD pdwState,LPDWORD pdwProtocol,LPBYTE pbAtr,LPDWORD pcbAtrLen);
-
-LONG wine_SCardTransmit(SCARDHANDLE hCard,const SCARD_IO_REQUEST *pioSendPci,LPCBYTE pbSendBuffer,
+LONG WINAPI wine_SCardTransmit(SCARDHANDLE hCard,const SCARD_IO_REQUEST *pioSendPci,LPCBYTE pbSendBuffer,
 				DWORD cbSendLength,SCARD_IO_REQUEST *pioRecvPci,LPBYTE pbRecvBuffer,
 				LPDWORD pcbRecvLength);
+
+LONG WINAPI wine_SCardBeginTransaction(SCARDHANDLE hHandle);
+
+LONG WINAPI wine_SCardCancel(SCARDCONTEXT hContext);
 
 #endif //WINSCARDIMPL
 
